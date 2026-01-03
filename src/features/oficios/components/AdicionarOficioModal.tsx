@@ -78,63 +78,46 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
 
   const handleChange =
     (field: string) =>
-    (event: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
-      const value = event.target.value;
-      setFormData({ ...formData, [field]: value });
-    };
+      (event: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
+        const value = event.target.value;
+        setFormData({ ...formData, [field]: value });
+      };
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, utilizado: event.target.checked });
   };
 
-  // 🟢 Inserção direta no Supabase
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true); // Nome correto no seu arquivo original
+    setError(null);
+
+    const payload = {
+      ano: Number(formData.ano),
+      remetente: formData.remetente,
+      destinatario: formData.destinatario,
+      cidade: formData.cidade,
+      descricao: formData.descricao,
+      utilizado: formData.utilizado,
+    };
+
     try {
-      setLoading(true);
-      setError(null);
+      const { data, error: funcError } = await supabase.functions.invoke('add_oficio', {
+        body: payload,
+      });
 
-      if (!formData.ano || !formData.remetente || !formData.destinatario) {
-        setError('Por favor, preencha todos os campos obrigatórios.');
-        return;
-      }
-
-      // Busca o último número de ofício existente
-      const { data: last } = await supabase
-        .from('oficios')
-        .select('numero')
-        .order('numero', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const novoNumero = (last?.numero ?? 0) + 1;
-
-      // Inserção
-      const { error: insertError } = await supabase.from('oficios').insert([
-        {
-          numero: novoNumero,
-          ano: parseInt(formData.ano),
-          remetente: formData.remetente,
-          destinatario: formData.destinatario,
-          cidade: formData.cidade,
-          descricao: formData.descricao || '',
-          utilizado: formData.utilizado,
-        },
-      ]);
-
-      if (insertError) throw insertError;
+      if (funcError) throw funcError;
 
       setSuccess(true);
-      resetForm();
-
-      // Fecha o modal e atualiza lista
+      onSuccess?.();
+      // Fechar o modal após sucesso
       setTimeout(() => {
-        setVisible(false);
-        if (onClose) onClose();
-        if (onSuccess) onSuccess();
-      }, 1500);
-    } catch (error) {
-      console.error('Erro ao adicionar ofício:', error);
-      setError('Erro ao adicionar ofício. Tente novamente.');
+        onClose?.();
+      }, 2000);
+
+    } catch (err: any) {
+      console.error("Erro:", err);
+      setError(err.message || "Erro ao criar ofício");
     } finally {
       setLoading(false);
     }
