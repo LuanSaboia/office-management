@@ -45,12 +45,14 @@ const ListagemOficios: React.FC = () => {
   const [selectedOficioId, setSelectedOficioId] = useState<number | undefined>(undefined);
   const [selectedOficio, setSelectedOficio] = useState<OficioItem | undefined>(undefined);
   const isInitialRender = useRef(true);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   const [filters, setFilters] = useState<OficiosFilterParams>({
     page: 1,
     pageSize: 10,
     search: '',
-    year: undefined,
+    year: currentYear,
     isUsed: undefined,
     sortBy: 'numero',
     sortDirection: 'desc',
@@ -184,9 +186,6 @@ const ListagemOficios: React.FC = () => {
     }));
     fetchOficios();
   };
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   // Renderização
   const renderDesktopView = () => (
