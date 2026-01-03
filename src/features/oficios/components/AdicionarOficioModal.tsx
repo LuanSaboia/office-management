@@ -109,11 +109,12 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
       if (funcError) throw funcError;
 
       setSuccess(true);
-      onSuccess?.();
-      // Fechar o modal após sucesso
+      resetForm();
       setTimeout(() => {
-        onClose?.();
-      }, 2000);
+        setVisible(false);
+        if (onClose) onClose();
+        if (onSuccess) onSuccess();
+      }, 1000);
 
     } catch (err: any) {
       console.error("Erro:", err);
