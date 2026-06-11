@@ -38,6 +38,7 @@ interface Oficio {
   cidade: string
   utilizado: boolean
   descricao?: string
+  finalidade?: string;
 }
 
 const Oficio: React.FC = () => {
@@ -182,9 +183,10 @@ const Oficio: React.FC = () => {
                 <TableCell>Ano</TableCell>
                 <TableCell>Remetente</TableCell>
                 <TableCell>Destinatário</TableCell>
+                <TableCell>Finalidade</TableCell>
                 <TableCell>Cidade</TableCell>
-                <TableCell>Utilizado</TableCell>
                 <TableCell>Descrição</TableCell>
+                <TableCell>Utilizado</TableCell>
                 <TableCell>Ações</TableCell>
               </TableRow>
             </TableHead>
@@ -195,9 +197,10 @@ const Oficio: React.FC = () => {
                   <TableCell>{oficio.ano}</TableCell>
                   <TableCell>{oficio.remetente}</TableCell>
                   <TableCell>{oficio.destinatario}</TableCell>
+                  <TableCell>{oficio.finalidade}</TableCell>
                   <TableCell>{oficio.cidade}</TableCell>
-                  <TableCell>{oficio.utilizado ? 'Sim' : 'Não'}</TableCell>
                   <TableCell>{oficio.descricao || ''}</TableCell>
+                  <TableCell>{oficio.utilizado ? 'Sim' : 'Não'}</TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleEdit(oficio)}>
                       <EditIcon />

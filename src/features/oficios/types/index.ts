@@ -9,6 +9,8 @@ export interface OficioItem {
     descricao?: string;
     assunto?: string;
     dataEnvio?: string | null;
+    finalidade?: string;
+    arquivo_url?: string | null;
 }
 
 export interface OficiosPagination {
@@ -30,4 +32,4 @@ export interface OficiosFilterParams {
     isUsed?: boolean;
     sortBy?: string;
     sortDirection?: 'asc' | 'desc';
-} 
+}

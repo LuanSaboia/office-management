@@ -22,9 +22,10 @@ const TableHeader: React.FC = () => {
                 <TableCell sx={numberHeaderStyle}>ANO</TableCell>
                 <TableCell sx={headerStyle}>REMETENTE</TableCell>
                 <TableCell sx={headerStyle}>DESTINATÁRIO</TableCell>
+                <TableCell sx={headerStyle}>EVENTO</TableCell>
                 <TableCell sx={headerStyle}>CIDADE</TableCell>
-                <TableCell sx={headerStyle}>STATUS</TableCell>
                 <TableCell sx={headerStyle}>DESCRIÇÃO</TableCell>
+                <TableCell sx={headerStyle}>STATUS</TableCell>
                 <TableCell sx={{ ...headerStyle, textAlign: 'center', borderRight: 'none' }}>
                     AÇÕES
                 </TableCell>

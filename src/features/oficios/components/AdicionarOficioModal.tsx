@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import {
   Alert,
   Box,
@@ -18,9 +19,9 @@ import {
   SelectChangeEvent,
   Snackbar,
   TextField,
+  Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { OficioItem } from '../types';
 import supabase from '../../../utils/supabase';
 
 interface AdicionarOficioModalProps {
@@ -39,13 +40,14 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [arquivo, setArquivo] = useState<File | null>(null);
 
-  // Estado do formulário
   const [formData, setFormData] = useState({
     ano: currentYear.toString(),
     remetente: '',
     destinatario: '',
     cidade: 'Crateús',
+    finalidade: '',
     descricao: '',
     utilizado: false,
   });
@@ -70,9 +72,11 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
       remetente: '',
       destinatario: '',
       cidade: 'Crateús',
+      finalidade: '',
       descricao: '',
       utilizado: false,
     });
+    setArquivo(null);
     setError(null);
   };
 
@@ -87,9 +91,21 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
     setFormData({ ...formData, utilizado: event.target.checked });
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const selectedFile = event.target.files[0];
+      if (selectedFile.type !== 'application/pdf') {
+        setError('Por favor, selecione apenas arquivos no formato PDF.');
+        return;
+      }
+      setArquivo(selectedFile);
+      setError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // Nome correto no seu arquivo original
+    setLoading(true);
     setError(null);
 
     const payload = {
@@ -97,9 +113,12 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
       remetente: formData.remetente,
       destinatario: formData.destinatario,
       cidade: formData.cidade,
+      finalidade: formData.finalidade,
       descricao: formData.descricao,
       utilizado: formData.utilizado,
     };
+
+    let idOficioCriado: number | null = null;
 
     try {
       const { data, error: funcError } = await supabase.functions.invoke('add_oficio', {
@@ -107,6 +126,32 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
       });
 
       if (funcError) throw funcError;
+
+      if (data && data.id) {
+        idOficioCriado = data.id;
+      }
+
+      if (arquivo && data) {
+        const numeroOficio = data.numero || data.id; 
+        const fileExt = arquivo.name.split('.').pop();
+        
+        const cidadeSanitizada = formData.cidade.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const filePath = `${cidadeSanitizada}/${formData.ano}/OF_${numeroOficio}.${fileExt}`;
+
+        // Upload com cacheControl configurado para zero
+        const { error: uploadError } = await supabase.storage
+          .from('oficios')
+          .upload(filePath, arquivo, { upsert: true, cacheControl: '0' });
+
+        if (uploadError) throw uploadError;
+
+        const { error: updateError } = await supabase
+          .from('oficios')
+          .update({ arquivo_url: filePath })
+          .eq('id', data.id);
+
+        if (updateError) throw updateError;
+      }
 
       setSuccess(true);
       resetForm();
@@ -117,8 +162,11 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
       }, 1000);
 
     } catch (err: any) {
-      console.error("Erro:", err);
-      setError(err.message || "Erro ao criar ofício");
+      console.error("Erro detectado durante a operação:", err);
+      if (idOficioCriado) {
+        await supabase.from('oficios').delete().eq('id', idOficioCriado);
+      }
+      setError(err.message || "Erro ao processar o salvamento do ofício e anexo.");
     } finally {
       setLoading(false);
     }
@@ -131,12 +179,7 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
   if (open === undefined) {
     return (
       <>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpen}>
           Adicionar Ofício
         </Button>
 
@@ -203,15 +246,10 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
     </>
   );
 
-  // 🔸 Renderização do formulário
   function renderForm() {
     return (
       <Box sx={{ pt: 2 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
@@ -241,9 +279,7 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
               <Select
                 labelId="cidade-label"
                 value={formData.cidade}
-                onChange={
-                  handleChange('cidade') as unknown as (event: SelectChangeEvent) => void
-                }
+                onChange={handleChange('cidade') as unknown as (event: SelectChangeEvent) => void}
                 label="Cidade"
               >
                 {cidadesOptions.map((cidade) => (
@@ -256,23 +292,43 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
           </Grid>
           <Grid item xs={12}>
             <TextField
+              label="Evento"
+              value={formData.finalidade}
+              onChange={handleChange('finalidade')}
+              fullWidth
+              placeholder="Ex: Solicitação de transporte para campeonato esportivo"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
               label="Descrição"
               value={formData.descricao}
               onChange={handleChange('descricao')}
               fullWidth
               multiline
-              rows={4}
+              rows={3}
             />
           </Grid>
           <Grid item xs={12}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<AttachFileIcon />}
+              fullWidth
+              color={arquivo ? "success" : "primary"}
+            >
+              {arquivo ? "Alterar Arquivo PDF Selecionado" : "Anexar Arquivo do Ofício (PDF)"}
+              <input type="file" accept=".pdf" hidden onChange={handleFileChange} />
+            </Button>
+            {arquivo && (
+              <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary', pl: 1 }}>
+                Arquivo pronto para upload: <strong>{arquivo.name}</strong>
+              </Typography>
+            )}
+          </Grid>
+          <Grid item xs={12}>
             <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.utilizado}
-                  onChange={handleCheckboxChange}
-                  color="primary"
-                />
-              }
+              control={<Checkbox checked={formData.utilizado} onChange={handleCheckboxChange} color="primary" />}
               label="Ofício Utilizado"
             />
           </Grid>
