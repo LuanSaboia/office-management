@@ -296,7 +296,6 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
               value={formData.finalidade}
               onChange={handleChange('finalidade')}
               fullWidth
-              placeholder="Ex: Solicitação de transporte para campeonato esportivo"
             />
           </Grid>
           <Grid item xs={12}>

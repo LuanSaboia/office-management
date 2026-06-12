@@ -180,7 +180,6 @@ const EditarOficioModal: React.FC<EditarOficioModalProps> = ({
               value={formData.finalidade}
               onChange={handleChange('finalidade')}
               fullWidth
-              placeholder="Ex: Solicitação de transporte para campeonato esportivo"
             />
             <TextField label="Descrição" value={formData.descricao} onChange={handleChange('descricao')} fullWidth multiline rows={3} />
 
