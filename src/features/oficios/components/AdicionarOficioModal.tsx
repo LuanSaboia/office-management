@@ -138,7 +138,6 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
         const cidadeSanitizada = formData.cidade.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const filePath = `${cidadeSanitizada}/${formData.ano}/OF_${numeroOficio}.${fileExt}`;
 
-        // Upload com cacheControl configurado para zero
         const { error: uploadError } = await supabase.storage
           .from('oficios')
           .upload(filePath, arquivo, { upsert: true, cacheControl: '0' });
@@ -200,15 +199,8 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
           </DialogActions>
         </Dialog>
 
-        <Snackbar
-          open={success}
-          autoHideDuration={4000}
-          onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert onClose={handleSnackbarClose} severity="success">
-            Ofício adicionado com sucesso!
-          </Alert>
+        <Snackbar open={success} autoHideDuration={4000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} >
+          <Alert onClose={handleSnackbarClose} severity="success">Ofício adicionado com sucesso!</Alert>
         </Snackbar>
       </>
     );
@@ -233,15 +225,8 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={success}
-        autoHideDuration={4000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleSnackbarClose} severity="success">
-          Ofício adicionado com sucesso!
-        </Alert>
+      <Snackbar open={success} autoHideDuration={4000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert onClose={handleSnackbarClose} severity="success">Ofício adicionado com sucesso!</Alert>
       </Snackbar>
     </>
   );
@@ -262,6 +247,7 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
               onChange={handleChange('remetente')}
               fullWidth
               required
+              placeholder="Ex: Shalom Crateús ou Coordenação de Juventude"
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -271,6 +257,7 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
               onChange={handleChange('destinatario')}
               fullWidth
               required
+              placeholder="Ex: À Direção do Colégio Estadual Regina Pacis"
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -292,20 +279,24 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="Evento"
+              label="Finalidade / Evento"
               value={formData.finalidade}
               onChange={handleChange('finalidade')}
               fullWidth
+              required
+              placeholder="Ex: Ref. Jornada Regional da Juventude"
             />
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="Descrição"
+              label="Descrição (Texto Formal do Ofício)"
               value={formData.descricao}
               onChange={handleChange('descricao')}
               fullWidth
               multiline
-              rows={3}
+              rows={4}
+              required
+              placeholder="Parágrafo descritivo detalhando o evento institucional e a solicitação formal de apoio..."
             />
           </Grid>
           <Grid item xs={12}>
@@ -316,7 +307,7 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({
               fullWidth
               color={arquivo ? "success" : "primary"}
             >
-              {arquivo ? "Alterar Arquivo PDF Selecionado" : "Anexar Arquivo do Ofício (PDF)"}
+              {arquivo ? "Alterar Arquivo PDF Selecionado" : "Anexar Arquivo do Ofício Finalizado (PDF)"}
               <input type="file" accept=".pdf" hidden onChange={handleFileChange} />
             </Button>
             {arquivo && (

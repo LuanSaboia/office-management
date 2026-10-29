@@ -1,5 +1,6 @@
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import {
   AppBar,
   Box,
@@ -33,7 +34,7 @@ const theme = createTheme({
 
 // Componente para os botões de navegação
 const NavButton = ({ to, label, icon, currentPath }: { to: string, label: string, icon: React.ReactNode, currentPath: string }) => {
-  const isActive = currentPath === to;
+  const isActive = currentPath === to || (to === '/oficios' && currentPath === '/');
 
   return (
     <Button
@@ -65,7 +66,7 @@ const ResponsiveAppBar = () => {
   const currentPath = location.pathname;
 
   return (
-    <AppBar position="sticky">
+    <AppBar position="sticky" className="no-print">
       <Toolbar>
         <Box sx={{ mr: 2 }}>
           <AssignmentIcon />
@@ -76,27 +77,45 @@ const ResponsiveAppBar = () => {
 
         {isMobile ? (
           // Versão mobile: apenas ícones
-          <Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Lista de Ofícios">
               <IconButton
                 color="inherit"
                 component={Link}
                 to="/oficios"
                 sx={{
-                  color: currentPath === '/oficios' ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                  color: (currentPath === '/oficios' || currentPath === '/') ? 'white' : 'rgba(255, 255, 255, 0.7)',
                 }}
               >
                 <ListAltIcon />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Gerar Ofício">
+              <IconButton
+                color="inherit"
+                component={Link}
+                to="/gerar-oficio"
+                sx={{
+                  color: currentPath === '/gerar-oficio' ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                }}
+              >
+                <NoteAddIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         ) : (
           // Versão desktop: botões com texto
-          <Box>
+          <Box sx={{ display: 'flex' }}>
             <NavButton
               to="/oficios"
               label="Lista de Ofícios"
               icon={<ListAltIcon />}
+              currentPath={currentPath}
+            />
+            <NavButton
+              to="/gerar-oficio"
+              label="Gerar Ofício"
+              icon={<NoteAddIcon />}
               currentPath={currentPath}
             />
           </Box>
@@ -129,7 +148,7 @@ const AppContent = () => {
         <AppRoutes />
       </Container>
 
-      <Box component="footer" sx={{ py: 2, bgcolor: 'background.paper', textAlign: 'center', borderTop: '1px solid #e0e0e0' }}>
+      <Box component="footer" sx={{ py: 2, bgcolor: 'background.paper', textAlign: 'center', borderTop: '1px solid #e0e0e0' }} className="no-print">
         <Typography variant="body2" color="text.secondary">
           © {new Date().getFullYear()} Sistema de Gerenciamento de Ofícios
         </Typography>
